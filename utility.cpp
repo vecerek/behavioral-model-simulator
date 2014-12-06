@@ -245,7 +245,8 @@ Event * Utility::Dequeue()
 	 * have the same priority but we have to find the first event of this subqueue.
 	 * As thez all have the same priority, it will be on the beginning(first record of multimap).
 	 */
-	samePriorityQueue::iterator it = this->queue.rbegin()->second.begin();
+	multimap<int, Event>::iterator it;
+	it = this->queue.rbegin()->second.begin();
 	Event *e = &it->second;
 	this->queue.rbegin()->second.erase(it);
 	if(this->queue.rbegin()->second.empty())

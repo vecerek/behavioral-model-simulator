@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <iostream>
 #include "calendar.h"
-#include "random.h"
+#include "functions.h"
 #include <map>
 using namespace std;
 
@@ -78,7 +78,8 @@ Event * Calendar::getEvent()
 	//check whether event calendar is empty
 	if(this->isEmpty()) return NULL;
 	//get the event with the lowest activation time and highest priority
-	eventPriority::iterator it = this->e_calendar.begin()->second.rbegin();
+	multimap<int, Event>::iterator it;
+	it = this->e_calendar.begin()->second.rbegin();
 	//save the event temporarily
 	Event *tmp = &it->second;
 	//erase the event from the multimap, so it can't be pulled more times from the calendar
