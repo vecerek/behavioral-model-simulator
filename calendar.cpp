@@ -13,18 +13,18 @@ using namespace std;
 
 
 //EVENT implementation
-Event::Event(int aTime, int priority)
+Event::Event(double aTime, int priority)
 {
 	this->aTime = aTime;
 	this->priority = priority;
 }
 
-int Event::getActivationTime()
+double Event::getActivationTime()
 {
 	return this->aTime;
 }
 
-void Event::setActivationTime(int aTime)
+void Event::setActivationTime(double aTime)
 {
 	this->aTime = aTime;
 }
@@ -41,12 +41,12 @@ void Event::setPriority(int priority)
 
 void Event::startWaitingInQueue(double startTime)
 {
-	this->queueTimeStart = startTime;
+	this->queueStartTime = startTime;
 }
 
 double Event::WaitingSince()
 {
-	return this->queueTimeStart;
+	return this->queueStartTime;
 }
 
 //CALENDAR implementation
@@ -73,7 +73,7 @@ bool Calendar::isEmpty()
 	return this->e_calendar.empty();
 }
 
-Event * Calendar::getEvent();
+Event * Calendar::getEvent()
 {
 	//check whether event calendar is empty
 	if(this->isEmpty()) return NULL;
@@ -96,14 +96,14 @@ Event * Calendar::getEvent();
  */
 void Calendar::addEvent(Event * e)
 {
-	double aTime = e->getAct_t();
+	double aTime = e->getActivationTime();
 	//check if event with that activation time already exists(not likely to happen but still possible)
 	map <double, eventPriority>::iterator it = this->e_calendar.find(aTime);
 	if(it == this->e_calendar.end())
 	{
 		//not found
 		//insert empty event-priority and activation time pair
-		this->e_calendar.insert(make_pair(aTime, eventPriority));
+		this->e_calendar.insert(make_pair(aTime, eventPriority()));
 		//get a reference to the newly added event into the calendar
 		it = this->e_calendar.find(aTime);
 		//it must have been found -> no check for end()
