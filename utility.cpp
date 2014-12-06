@@ -245,12 +245,17 @@ Event * Utility::Dequeue()
 	 * have the same priority but we have to find the first event of this subqueue.
 	 * As thez all have the same priority, it will be on the beginning(first record of multimap).
 	 */
-	multimap<int, Event>::iterator it;
-	it = this->queue.rbegin()->second.begin();
-	Event *e = &it->second;
-	this->queue.rbegin()->second.erase(it);
-	if(this->queue.rbegin()->second.empty())
-		this->queue.erase(this->queue.rbegin());
+	multimap<int, Event>::iterator it_in;
+	map<int, samePriorityQueue>::iterator it_out;
+
+	it_out = this->queue.end()--;
+	it_in = it_out->second.begin();
+
+	Event *e = &it_in->second;
+	it_out->second.erase(it_in);
+	it_in = it_out->second.begin();
+	if(it_out->second.empty())
+		this->queue.erase(it_out);
 
 	this->stats.queueOut++;
 
@@ -303,7 +308,7 @@ void Utility::Statistics()
 			line_capacity += "BUSY";
 	}
 	else
-		line_capacity = "| Capacity: " + to_string(this->capacity) + " (in use: " + to_string(this->usedCapacity) + ", free: " + to_string(this->remainingCap) + ")";
+		line_capacity = "| Capacity: " + to_string(this->capacity) + " (in use: " + to_string(this->usedCapacity()) + ", free: " + to_string(this->remainingCap) + ")";
 
 	line_capacity.insert(line_capacity.length(), LINE_LENGTH - line_capacity.length() - 1, ' ');
 	this->utilityStats += line_capacity + "|\n";
@@ -314,9 +319,9 @@ void Utility::Statistics()
 
 	string line_requests = "| ";
 	string request = Facility ? "Number of requests: " : "Number of Enter Operations: ";
-	line_requests += request + to_string(this->totalRequests);
-	line_request.insert(line_request.length(), LINE_LENGTH - line_request.length() - 1, ' ');
-	this->utilityStats += line_request + "|\n";
+	line_requests += request + to_string(this->stats.totalRequests);
+	line_requests.insert(line_requests.length(), LINE_LENGTH - line_requests.length() - 1, ' ');
+	this->utilityStats += line_requests + "|\n";
 
 	if(!Facility)
 	{
@@ -328,7 +333,7 @@ void Utility::Statistics()
 	if(Facility)
 	{
 		string line_utilization = "| Average Utilization: " + to_string(this->stats.totalUsedTime / Calendar::instance->getTime());
-		line_utilization.insert(line_utilization.length(), LINE_LENGTH - line_utilization.line_utilization.legth() - 1, ' ');
+		line_utilization.insert(line_utilization.length(), LINE_LENGTH - line_utilization.length() - 1, ' ');
 		this->utilityStats += line_utilization + "|\n";
 	}
 	else

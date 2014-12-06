@@ -79,7 +79,8 @@ Event * Calendar::getEvent()
 	if(this->isEmpty()) return NULL;
 	//get the event with the lowest activation time and highest priority
 	multimap<int, Event>::iterator it;
-	it = this->e_calendar.begin()->second.rbegin();
+	it = this->e_calendar.begin()->second.end();
+	it--;
 	//save the event temporarily
 	Event *tmp = &it->second;
 	//erase the event from the multimap, so it can't be pulled more times from the calendar
