@@ -4,6 +4,8 @@
 #include <map>
 #include <stdbool.h>
 
+using namespace std;
+
 class Calendar;
 class Event;
 
@@ -30,7 +32,7 @@ class Event
 
 //Stores Event and it's priority in a multimap as key-value pair.
 //We use multimap, thus it can store several Events with the same priority
-typedef std::multimap<int, Event> eventPriority;
+typedef multimap<int, Event> eventPriority;
 
 //must be implemented as singleton
 class Calendar
@@ -39,7 +41,7 @@ class Calendar
 		double sim_start_t;
 		double sim_end_t;
 		double sim_actual_t;
-		std::map<double, eventPriority> e_calendar;
+		map<double, eventPriority> e_calendar;
 
 	public:
 		static Calendar *instance;

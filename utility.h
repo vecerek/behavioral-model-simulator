@@ -15,7 +15,8 @@ using namespace std;
 typedef struct
 {
 	//Only Store stats
-	int capacityTotalUsage;
+	double capacityTotalUsage;
+	int minUsedCapacity;
 	int maxUsedCapacity;
 	double lastUsed;
 	int capacityRequests;
@@ -24,44 +25,46 @@ typedef struct
 	double startUsage, endUsage, totalUsedTime;
 	int totalRequests;
 
+	int queueIn, queueOut;
 	double transTotalWaitingInQueue;
 	double transTotalWaitingInQueue_2;
 	double transMaxTimeWaitingInQueue;
 	double transMinTimeWaitingInQueue;
-	int transInQueue;
 	
 	int queueMaxLen;
 	int queueLenSummed;
 	double queueLastAltered;
 
 } Stats;
+
+typedef multimap<int, Event> samePriorityQueue;
 			
 //UTILITY
 class Utility
 {
 	private:
-		string name;
 		int capacity;
 		int remainingCap;
-		bool priority_q;
-		multimap<int, Event> queue;
+		map<int, samePriorityQueue> queue;
 
 		void initStats();
 		bool isFacility();
 		bool canBeSeized(int capacityToUse);
 		int usedCapacity();
 		void queueAltered(double Time);
-		bool priorityQueue();
 
 	public:
+		string name;
 		Stats stats;
+		string utilityStats;
 
 		Utility(string name, bool priority_q);
 		Utility(string name, int capacity, bool priority_q);
 		void Enter(Event *e, int capacityToUse);
 		void Leave(Event *e, int capacityToFree);
-		void Enqueue(Event *e, int priority);
+		void Enqueue(Event *e);
 		Event * Dequeue();
+		void Statistics();
 };
 
 #endif
