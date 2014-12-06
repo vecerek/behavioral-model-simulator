@@ -5,8 +5,8 @@
   	Subject: IMS 
 */
 
-#ifndef FUNCTIONS
-#define FUNCTIONS
+#ifndef FUNCTIONS_H
+#define FUNCTIONS_H
 
 // Function for random generator initiaization
 // We don't want same numbers when we run program again

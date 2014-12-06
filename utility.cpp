@@ -6,7 +6,7 @@
 */
 
 #include <string>
-#include <stdbool>
+#include <stdbool.h>
 #include <cfloat>
 #include <cmath>
 #include "utility.h"
@@ -31,7 +31,7 @@ Utility::Utility(string name, int cap)
 	this->initStats();
 }
 
-void Utility::InitStats()
+void Utility::initStats()
 {
 	if(this->capacity > 1)
 	{
@@ -120,7 +120,7 @@ void Utility::Enter(Event *e, int capacityToUse = 1)
 			//Set maxUsedCapacity, if the actual value is greater then our max
 			if(usedCap > this->stats.maxUsedCapacity)
 				this->stats.maxUsedCapacity = usedCap;
-			if((usedCap > 0) && < (this->stats.minUsedCapacity))
+			if((usedCap > 0) && (this->stats.minUsedCapacity))
 				this->stats.minUsedCapacity = usedCap;
 		}
 		//Increment the number of total requests for this utility
@@ -136,12 +136,13 @@ void Utility::Leave(Event *e, int capacityToFree = 1)
 	double actualTime = Calendar::instance->getTime();
 	//Is the utility a facility?
 	bool Facility = this->isFacility();
+	int usedCap;
 
 	//Action taken only if the instance is a Store
 	if(!Facility)
 	{
 		//The utility's actual capacity being used
-		int usedCap = this->usedCapacity();
+		usedCap = this->usedCapacity();
 		//Summarizing the total capacity used of the store the same way
 		//as in the method Enter()
 		this->stats.capacityTotalUsage += usedCap * (actualTime - this->stats.lastUsed);
@@ -210,7 +211,7 @@ void Utility::Enqueue(Event *e)
 	map <int, samePriorityQueue>::iterator it = this->queue.find(event_prior);
 	if(it == this->queue.end())
 	{
-		this->queue.insert(make_pair(event_prior, samePriorityQueue));
+		this->queue.insert(make_pair(event_prior, samePriorityQueue()));
 		it = this->queue.find(event_prior);
 		it->second.insert(make_pair(event_prior, *e));
 	}
@@ -224,8 +225,8 @@ void Utility::Enqueue(Event *e)
 	//queue for statistical purposes
 	this->stats.queueIn++;
 	//Checking if the queue length record has been beaten
-	if(++actSize > this->stats.queueMaxLen)
-		this->stats.queueMaxLen = actSize;
+	if(++queueSize > this->stats.queueMaxLen)
+		this->stats.queueMaxLen = queueSize;
 }
 
 Event * Utility::Dequeue()
@@ -244,7 +245,7 @@ Event * Utility::Dequeue()
 	 * have the same priority but we have to find the first event of this subqueue.
 	 * As thez all have the same priority, it will be on the beginning(first record of multimap).
 	 */
-	multimap <int, Event>::iterator it = this->queue.rbegin()->second.begin();
+	samePriorityQueue::iterator it = this->queue.rbegin()->second.begin();
 	Event *e = &it->second;
 	this->queue.rbegin()->second.erase(it);
 	if(this->queue.rbegin()->second.empty())
@@ -253,7 +254,7 @@ Event * Utility::Dequeue()
 	this->stats.queueOut++;
 
 	//Calculate the time spent in queue
-	double spentInQueue = actualTime - e->queueStartTime;
+	double spentInQueue = actualTime - e->waitingSince();
 	//Set minimal and maximal queue time, if new record's been reached
 	if(spentInQueue > this->stats.transMaxTimeWaitingInQueue)
 		this->stats.transMaxTimeWaitingInQueue = spentInQueue;
@@ -263,8 +264,8 @@ Event * Utility::Dequeue()
 	//Sum up the total time spent in the queue of every transaction
 	//and sum up the time's square to be able to calculate the standard
 	//deviation
-	this->transTotalWaitingInQueue += spentInQueue;
-	this->transTotalWaitingInQueue_2 += pow(spentInQueue, 2);
+	this->stats.transTotalWaitingInQueue += spentInQueue;
+	this->stats.transTotalWaitingInQueue_2 += pow(spentInQueue, 2);
 
 	//the queue has also been altered, so we have to set its time
 	this->queueAltered(actualTime);
@@ -275,109 +276,110 @@ Event * Utility::Dequeue()
 void Utility::Statistics()
 {
 	const int LINE_LENGTH = 60;
-	double Time = Calendar::instance->getActivationTime();
+	double Time = Calendar::instance->getTime();
 	bool Facility = this->isFacility();
 	string line_divide = "+";
 
 	line_divide.insert(1, 58, ' ');
 	line_divide += "+\n";
 
-	this->utilitystats += line_divide;
+	this->utilityStats += line_divide;
 	string utility = Facility ? "FACILITY" : "STORE";
 	string line_utility = "| ";
 	line_utility += utility + " " + this->name;
 	line_utility.insert(line_utility.length(), LINE_LENGTH - line_utility.length() - 1, ' ');
-	this->utilitystats += line_utility + "|\n";
+	this->utilityStats += line_utility + "|\n";
 
-	this->utilitystats += line_divide;
+	this->utilityStats += line_divide;
 
+	string line_capacity;
 	if(Facility)
 	{
-		string line_capacity = "| Status: ";
+		line_capacity = "| Status: ";
 		if(this->canBeSeized())
 			line_capacity += "NOT BUSY";
 		else
 			line_capacity += "BUSY";
 	}
 	else
-		string line_capacity = "| Capacity: " + to_string(this->capacity) + " (in use: " + to_string(this->usedCapacity) + ", free: " + to_string(this->remainingCap) + ")";
+		line_capacity = "| Capacity: " + to_string(this->capacity) + " (in use: " + to_string(this->usedCapacity) + ", free: " + to_string(this->remainingCap) + ")";
 
 	line_capacity.insert(line_capacity.length(), LINE_LENGTH - line_capacity.length() - 1, ' ');
-	this->utilitystats += line_capacity + "|\n";
+	this->utilityStats += line_capacity + "|\n";
 
 	string line_t_interval = "| Time interval: " + to_string(Calendar::instance->getStart_t()) + " - " + to_string(Calendar::instance->getEnd_t());
 	line_t_interval.insert(line_t_interval.length(), LINE_LENGTH - line_t_interval.length() - 1, ' ');
-	this->utilitystats += line_t_interval + "|\n";
+	this->utilityStats += line_t_interval + "|\n";
 
 	string line_requests = "| ";
 	string request = Facility ? "Number of requests: " : "Number of Enter Operations: ";
 	line_requests += request + to_string(this->totalRequests);
 	line_request.insert(line_request.length(), LINE_LENGTH - line_request.length() - 1, ' ');
-	this->utilitystats += line_request + "|\n";
+	this->utilityStats += line_request + "|\n";
 
 	if(!Facility)
 	{
-		string line_avg_cap_on_enter = "| Average capacity requested on Enter operation: " + to_string(this->capacityRequests/(double)totalRequests);
+		string line_avg_cap_on_enter = "| Average capacity requested on Enter operation: " + to_string(this->stats.capacityRequests / (double)this->stats.totalRequests);
 		line_avg_cap_on_enter.insert(line_avg_cap_on_enter.length(), LINE_LENGTH - line_avg_cap_on_enter.length() - 1, ' ');
-		this->utilitystats += line_avg_cap_on_enter + "|\n";
+		this->utilityStats += line_avg_cap_on_enter + "|\n";
 	}
 
 	if(Facility)
 	{
-		string line_utilization = "| Average Utilization: " + to_string(this->totalUsedTime / Calendar::instance->getActivationTime());
+		string line_utilization = "| Average Utilization: " + to_string(this->stats.totalUsedTime / Calendar::instance->getTime());
 		line_utilization.insert(line_utilization.length(), LINE_LENGTH - line_utilization.line_utilization.legth() - 1, ' ');
-		this->utilitystats += line_utilization + "|\n";
+		this->utilityStats += line_utilization + "|\n";
 	}
 	else
 	{
-		string line_capacities = "| Minimal used capacity: " + to_string(this->minUsedCapacity);
+		string line_capacities = "| Minimal used capacity: " + to_string(this->stats.minUsedCapacity);
 		line_capacities.insert(line_capacities.length(), LINE_LENGTH - line_capacities.length() - 1, ' ');
-		this->utilitystats += line_capacities + "|\n";
+		this->utilityStats += line_capacities + "|\n";
 
-		line_capacities = "| Maximal used capacity: " + to_string(this->maxUsedCapacity);
+		line_capacities = "| Maximal used capacity: " + to_string(this->stats.maxUsedCapacity);
 		line_capacities.insert(line_capacities.length(), LINE_LENGTH - line_capacities.length() - 1, ' ');
-		this->utilitystats += line_capacities + "|\n";
+		this->utilityStats += line_capacities + "|\n";
 
-		line_capacities = "| Average used capacity: " + to_string(this->capacityTotalUsage / Time);
+		line_capacities = "| Average used capacity: " + to_string(this->stats.capacityTotalUsage / Time);
 		line_capacities.insert(line_capacities.length(), LINE_LENGTH - line_capacities.length() - 1, ' ');
-		this->utilitystats += line_capacities + "|\n";
+		this->utilityStats += line_capacities + "|\n";
 	}
 
 	//QUEUE
-	this->utilitystats += line_divide + "Input queue '" + this->name + ".Q'\n" + line_divide;
+	this->utilityStats += line_divide + "Input queue '" + this->name + ".Q'\n" + line_divide;
 	string line_queue = "| QUEUE Q";
-	line_queue.insert(line_queue.length(). LINE_LENGTH - line_queue.length() - 1, ' ');
-	this->utilitystats += line_queue + "|\n" + line_divide;
+	line_queue.insert(line_queue.length(), LINE_LENGTH - line_queue.length() - 1, ' ');
+	this->utilityStats += line_queue + "|\n" + line_divide;
 
 	string line_q_t_interval = "| Time interval: " + to_string(Calendar::instance->getStart_t()) + " - " + to_string(Calendar::instance->getEnd_t());
 	line_q_t_interval.insert(line_q_t_interval.length(), LINE_LENGTH - line_q_t_interval.length() - 1, ' ');
-	this->utilitystats += line_q_t_interval + "|\n";
+	this->utilityStats += line_q_t_interval + "|\n";
 
 	string line_incoming = "| Incoming: " + to_string(this->stats.queueIn);
 	line_incoming.insert(line_incoming.length(), LINE_LENGTH - line_incoming.length() - 1, ' ');
-	this->utilitystats += line_incoming + "|\n";
+	this->utilityStats += line_incoming + "|\n";
 
 	string line_outgoing = "| Outgoing: " + to_string(this->stats.queueOut);
 	line_outgoing.insert(line_outgoing.length(), LINE_LENGTH - line_outgoing.length() - 1, ' ');
-	this->utilitystats += line_outgoing + "|\n";
+	this->utilityStats += line_outgoing + "|\n";
 
 	string line_max_len = "| Maximal length: " + to_string(this->stats.queueMaxLen);
 	line_max_len.insert(line_max_len.length(), LINE_LENGTH - line_max_len.length() - 1, ' ');
-	this->utilitystats += line_max_len + "|\n";
+	this->utilityStats += line_max_len + "|\n";
 
 	this->stats.queueLenSummed += this->queue.size() * (Time - this->stats.queueLastAltered);
 	double avg_q_len = this->stats.queueLenSummed / Time;
 	string line_avg_len = "| Average length: " + to_string(avg_q_len);
 	line_avg_len.insert(line_avg_len.length(), LINE_LENGTH - line_avg_len.length() - 1, ' ');
-	this->utilitystats += line_avg_len + "|\n";
+	this->utilityStats += line_avg_len + "|\n";
 
 	string line_min_time = "| Minimal time: " + to_string(this->stats.transMinTimeWaitingInQueue);
 	line_min_time.insert(line_min_time.length(), LINE_LENGTH - line_min_time.length() - 1, ' ');
-	this->utilitystats += line_min_time + "|\n";
+	this->utilityStats += line_min_time + "|\n";
 
 	string line_max_time = "| Maximal time: " + to_string(this->stats.transMaxTimeWaitingInQueue);
 	line_max_time.insert(line_max_time.length(), LINE_LENGTH - line_max_time.length() - 1, ' ');
-	this->utilitystats += line_max_time + "|\n";
+	this->utilityStats += line_max_time + "|\n";
 
 	double avg_time;
 	string avg_time_s;
@@ -390,7 +392,7 @@ void Utility::Statistics()
 	}
 	string line_avg_time = "| Average time: " + avg_time_s;
 	line_avg_time.insert(line_avg_time.length(), LINE_LENGTH - line_avg_time.length() - 1, ' ');
-	this->utilitystats += line_avg_time + "|\n";
+	this->utilityStats += line_avg_time + "|\n";
 
 	string deviation;
 	if(this->stats.queueOut < 2)
@@ -399,6 +401,6 @@ void Utility::Statistics()
 		deviation = to_string(sqrt(this->stats.transTotalWaitingInQueue_2 - (this->stats.queueOut * pow(avg_time, 2)) / (this->stats.queueOut - 1)));
 	string line_std_dev = "| Standard deviation: " + deviation;
 	line_std_dev.insert(line_std_dev.length(), LINE_LENGTH - line_std_dev.length() - 1, ' ');
-	this->utilitystats += line_std_dev + "|\n" + line_divide + "\n";
+	this->utilityStats += line_std_dev + "|\n" + line_divide + "\n";
 
 }

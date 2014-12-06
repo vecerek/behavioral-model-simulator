@@ -2,8 +2,8 @@
 #define UTILITY
 
 #include <string>
-#include <map>
 #include <stdbool.h>
+#include <map>
 #include "calendar.h"
 
 using namespace std;
@@ -58,8 +58,8 @@ class Utility
 		Stats stats;
 		string utilityStats;
 
-		Utility(string name, bool priority_q);
-		Utility(string name, int capacity, bool priority_q);
+		Utility(string name);
+		Utility(string name, int capacity);
 		void Enter(Event *e, int capacityToUse);
 		void Leave(Event *e, int capacityToFree);
 		void Enqueue(Event *e);

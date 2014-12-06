@@ -44,7 +44,7 @@ void Event::startWaitingInQueue(double startTime)
 	this->queueStartTime = startTime;
 }
 
-double Event::WaitingSince()
+double Event::waitingSince()
 {
 	return this->queueStartTime;
 }
@@ -78,7 +78,7 @@ Event * Calendar::getEvent()
 	//check whether event calendar is empty
 	if(this->isEmpty()) return NULL;
 	//get the event with the lowest activation time and highest priority
-	multimap <double, Event>::iterator it = this->e_calendar.begin()->second.rbegin();
+	eventPriority::iterator it = this->e_calendar.begin()->second.rbegin();
 	//save the event temporarily
 	Event *tmp = &it->second;
 	//erase the event from the multimap, so it can't be pulled more times from the calendar

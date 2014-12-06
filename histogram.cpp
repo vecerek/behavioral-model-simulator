@@ -15,7 +15,7 @@
 using namespace std;
 
 // histogram constructor -> set variables
-Histogram(string out_name, int from, int step, int num_of_classes);
+Histogram::Histogram(string out_name, int from, int step, int num_of_classes)
 {
 	this->write_it = false;
 	this->out_name = out_name;
@@ -25,14 +25,14 @@ Histogram(string out_name, int from, int step, int num_of_classes);
 }
 
 // histogram constructor 2 -> set variables -> writes only name
-Histogram(string out_name);
+Histogram::Histogram(string out_name)
 {
 	this->write_it = true;
 	this->out_name = out_name;
 }
 
 // create file for histogram output
-void create_file(string file_name)
+void Histogram::create_file(string file_name)
 {
 
 	if(!this->is_set)
@@ -46,7 +46,7 @@ void create_file(string file_name)
 }
 
 // write to created file
-void data_out_write(string data)
+void Histogram::data_out_write(string data)
 {
 	fstream fs_out_file;
 	fs_out_file.open ( this->file_name.c_str(), ios::out | ios::app );
@@ -55,23 +55,19 @@ void data_out_write(string data)
 }
 
 // get min value 
-int min_value()
+double Histogram::min_value()
 {
-	map<int, int>::iterator min;
-	min = this->histogram_map.begin();
-	return min->first;
+	return this->histogram_map.begin()->first;
 }
 
 // get max value
-int max_value()
+double Histogram::max_value()
 {
-	map<int, int>::iterator max;
-	max = this->histogram_map.rbegin();
-	return max->first;
+	return this->histogram_map.rbegin()->first;
 }
 
 // add value to histogram map
-void add_value(double value);
+void Histogram::add_value(double value)
 {
 	map<double , int>::iterator add;
 	add = this->histogram_map.find(value);
@@ -87,12 +83,12 @@ void add_value(double value);
 
 // return number of records or number of records in interval
 // int_rec_value = true -> value, else all values
-int records_num(int begin, int end, bool int_rec_value)
+int Histogram::records_num(double begin, double end, bool int_rec_value)
 {
-	map<int, int>::iterator records;
+	map<double, int>::iterator records;
 	int value_all = 0;
-	double value = 0;
-	int = this->histogram_map.begin();
+	int value = 0;
+	records = this->histogram_map.begin();
 
 	while(records != this->histogram_map.end())
 	{
@@ -107,9 +103,9 @@ int records_num(int begin, int end, bool int_rec_value)
 }
 
 // get sum of each rows
-double sum_num()
+double Histogram::sum_num()
 {
-	map<int, int>::iterator sum;
+	map<double, int>::iterator sum;
 	double value = 0;
 	sum = this->histogram_map.begin();
 
@@ -123,9 +119,9 @@ double sum_num()
 }
 
 // get standard deviation
-double deviation_num()
+double Histogram::deviation_num()
 {
-	map<int, int>::iterator dev;
+	map<double, int>::iterator dev;
 	double value = 0.0;
 	double average_value = this->sum_num() / (double)this->records_num(0, 0, false);
 	dev = this->histogram_map.begin();
@@ -140,7 +136,7 @@ double deviation_num()
 }
 
 // data to file
-void data_out()
+void Histogram::data_out()
 {
 	int record_value = 0;
 	string out_data;
@@ -174,7 +170,7 @@ void data_out()
 	out_data = out_data + data_line;
 
 	///////////////////////////////////////////////////////////// MIN MAX
-	min = to_string(this->min_value());
+	min = std::to_string(this->min_value());
 	max = to_string(this->max_value());
 
 	data_line = "| Min = " + min + "           Max = " + max; 
@@ -279,16 +275,16 @@ void data_out()
 		data_line = data_line + "|";
 
 		///////////////////////////////////////////////////////////// REL
-
+		string rel_str = "";
 		
 		if(record_value != 0) 
 		{
 			sum_value = sum_value + rel_value;
-			string rel_str = to_string(rel_value);
+			rel_str = to_string(rel_value);
 		}
 		else
 		{
-			string rel_str = "undef";
+			rel_str = "undef";
 		}
 
 		parity = rel_str.length() % 2; 
@@ -303,11 +299,11 @@ void data_out()
 
 		if(record_value != 0 ) 
 		{
-			string sum_str = to_string(sum_value);
+			sum_str = to_string(sum_value);
 		}
 		else 
 		{
-			string sum_str = "undef";
+			sum_str = "undef";
 
 		}
 		
