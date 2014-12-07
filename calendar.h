@@ -6,9 +6,6 @@
 
 using namespace std;
 
-class Calendar;
-class Event;
-
 //EVENT
 
 class Event
@@ -16,7 +13,9 @@ class Event
 	protected:
 		double aTime;
 		int priority;
+		int next;
 		double queueStartTime;
+		double eventStartTime;
 	
 	public:
 		Event(double aTime, int priority);

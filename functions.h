@@ -5,8 +5,11 @@
   	Subject: IMS 
 */
 
+
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
+#include <string>
+using namespace std;
 
 // Function for random generator initiaization
 // We don't want same numbers when we run program again
@@ -21,5 +24,11 @@ double uniform_gen(double L, double H);
 
 // Exponential distribution function with center E
 double exponential_gen(double E);
+
+// create file for histogram output
+string create_file(string file_name);
+
+// write to created file
+void data_out_write(string file_name, string data);
 
 #endif

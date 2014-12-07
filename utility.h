@@ -37,24 +37,25 @@ typedef struct
 
 } Stats;
 
-typedef multimap<int, Event> samePriorityQueue;
+typedef multimap<double, Event> samePriorityQueue;
 			
 //UTILITY
 class Utility
 {
 	private:
 		int capacity;
-		int remainingCap;
 		map<int, samePriorityQueue> queue;
 
 		void initStats();
 		bool isFacility();
 		bool canBeSeized(int capacityToUse);
-		int usedCapacity();
 		void queueAltered(double Time);
+		bool isQueueEmpty();
+		int getQueueLength();
 
 	public:
 		string name;
+		int remainingCap;
 		Stats stats;
 		string utilityStats;
 
@@ -64,7 +65,8 @@ class Utility
 		void Leave(Event *e, int capacityToFree);
 		void Enqueue(Event *e);
 		Event * Dequeue();
-		void Statistics();
+		int usedCapacity();
+		string Statistics();
 };
 
 #endif

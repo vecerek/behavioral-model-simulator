@@ -9,6 +9,10 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <string>
+#include <fstream>
+
+
 
 using namespace std;
 
@@ -44,4 +48,23 @@ double exponential_gen(double E)
 {
 	double exponent = -E * log(random_gen());
 	return exponent;
+}
+
+
+// create file for histogram output
+string create_file(string file_name)
+{
+	fstream fs;
+	fs.open( file_name.c_str(), ios::out );
+	fs.close();
+	return file_name;
+}
+
+// write to created file
+void data_out_write(string file_name, string data)
+{
+	fstream fs_out_file;
+	fs_out_file.open ( file_name.c_str(), ios::out | ios::app );
+	fs_out_file << data;
+	fs_out_file.close();
 }

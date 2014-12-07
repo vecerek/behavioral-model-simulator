@@ -17,6 +17,7 @@ Event::Event(double aTime, int priority)
 {
 	this->aTime = aTime;
 	this->priority = priority;
+	this->next = 1;
 }
 
 double Event::getActivationTime()

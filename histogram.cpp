@@ -6,11 +6,13 @@
 */
 
 #include "histogram.h"
+#include "functions.h"
 
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include <string>
+
 
 using namespace std;
 
@@ -22,6 +24,7 @@ Histogram::Histogram(string out_name, int from, int step, int num_of_classes)
 	this->from = from;
 	this->step = step;
 	this->num_of_classes = num_of_classes;
+	this->is_set = false;
 }
 
 // histogram constructor 2 -> set variables -> writes only name
@@ -29,29 +32,7 @@ Histogram::Histogram(string out_name)
 {
 	this->write_it = true;
 	this->out_name = out_name;
-}
-
-// create file for histogram output
-void Histogram::create_file(string file_name)
-{
-
-	if(!this->is_set)
-	{
-		this->file_name = file_name;
-	}
-	
-	fstream fs;
-	fs.open( file_name.c_str(), ios::out );
-	fs.close();
-}
-
-// write to created file
-void Histogram::data_out_write(string data)
-{
-	fstream fs_out_file;
-	fs_out_file.open ( this->file_name.c_str(), ios::out | ios::app );
-	fs_out_file << data;
-	fs_out_file.close();
+	this->is_set = false;
 }
 
 // get min value 
@@ -63,7 +44,8 @@ double Histogram::min_value()
 // get max value
 double Histogram::max_value()
 {
-	return this->histogram_map.rbegin()->first;
+	map<double , int>::reverse_iterator max = this->histogram_map.rbegin(); 
+	return max->first;
 }
 
 // add value to histogram map
@@ -136,7 +118,7 @@ double Histogram::deviation_num()
 }
 
 // data to file
-void Histogram::data_out()
+void Histogram::data_out(string file_name)
 {
 	int record_value = 0;
 	string out_data;
@@ -147,9 +129,9 @@ void Histogram::data_out()
 	string record = "";
 	string average = "";
 	string deviation = "";
-	string line_hist = "+-----------+-----------+------------+-----------+-----------+\n";
+	string line_hist = "+-----------+-----------+----------+-----------+-----------+\n";
 
-	line.insert(1, 58,' ');
+	line.insert(1, 58,'-');
 	line += "+\n";
 
 	out_data = out_data + line;
@@ -158,19 +140,19 @@ void Histogram::data_out()
 	{
 		data_line = "| HISTOGRAM " + this->out_name;
 
-		data_line.insert(12, 47,' ');
+		data_line.insert(data_line.length(), 60 - data_line.length() - 1,' ');
 		data_line = data_line + "|\n" + line;
 		out_data = out_data + data_line;
 	}
 		
-	data_line = "| STATISTIC " + this->out_name;
+	data_line = "| STATISTIC ";
 
-	data_line.insert(12, 47,' ');
+	data_line.insert(data_line.length(), 60 - data_line.length() - 1,' ');
 	data_line = data_line + "|\n" + line;
 	out_data = out_data + data_line;
-
 	///////////////////////////////////////////////////////////// MIN MAX
-	min = std::to_string(this->min_value());
+	min = to_string(this->min_value());
+
 	max = to_string(this->max_value());
 
 	data_line = "| Min = " + min + "           Max = " + max; 
@@ -204,6 +186,8 @@ void Histogram::data_out()
 	data_line = data_line + "|\n";
 	out_data = out_data + data_line;
 
+
+
 	///////////////////////////////////////////////////////////// DEVIATION
 	if(record_value >= 2)
 	{
@@ -222,7 +206,7 @@ void Histogram::data_out()
 	if (this->write_it)
 	{
 		out_data = out_data + "\n";		
-		this->data_out_write(out_data);
+		data_out_write(file_name, out_data);
 		return;
 	}
 	
@@ -230,19 +214,19 @@ void Histogram::data_out()
 
 					
 	data_line = line_hist;
-	data_line = data_line + "|   from    |     to    |      n     |    rel    |    sum    |\n";
+	data_line = data_line + "|   from    |     to    |     n    |    rel    |    sum    |\n";
 	data_line = data_line + line_hist;
 	out_data = out_data + data_line;
 
 	int from_index = this->from;
 	int step_index = this->step;
-	double sum_value = 0;
-	
+	double sum_value = 0.0;
+	double rel_value = 0.0;
 	int index = 1;
 	while(index <= this->num_of_classes)
 	{
 		int interval = this->records_num(from_index, from_index + step_index, true);
-		double rel_value = ( double ) interval / ( double ) record_value;
+		
 
 		///////////////////////////////////////////////////////////// FROM
 		string from_str = to_string(from_index);
@@ -269,9 +253,9 @@ void Histogram::data_out()
 		string n_str = to_string(interval);
 
 		parity = n_str.length() % 2; 
-		data_line.insert(data_line.length(),6 - n_str.length() / 2, ' ');
+		data_line.insert(data_line.length(),5 - n_str.length() / 2, ' ');
 		data_line = data_line + n_str;
-		data_line.insert(data_line.length(),6 - parity - n_str.length() / 2, ' ');
+		data_line.insert(data_line.length(),5 - parity - n_str.length() / 2, ' ');
 		data_line = data_line + "|";
 
 		///////////////////////////////////////////////////////////// REL
@@ -279,6 +263,7 @@ void Histogram::data_out()
 		
 		if(record_value != 0) 
 		{
+			rel_value = (double)interval / (double)record_value;
 			sum_value = sum_value + rel_value;
 			rel_str = to_string(rel_value);
 		}
@@ -310,7 +295,7 @@ void Histogram::data_out()
 
 		parity = sum_str.length() % 2; 
 		data_line.insert(data_line.length(),5 - sum_str.length() / 2, ' ');
-		data_line = data_line + rel_str;
+		data_line = data_line + sum_str;
 		data_line.insert(data_line.length(),6 - parity - sum_str.length() / 2, ' ');
 		data_line = data_line + "|";
 
@@ -321,7 +306,7 @@ void Histogram::data_out()
 
 	out_data = out_data + line_hist + "\n";
 
-	this->data_out_write(out_data);
+	data_out_write(file_name, out_data);
 
 
 }

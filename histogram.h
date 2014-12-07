@@ -19,7 +19,6 @@ class Histogram
 {
 
 	protected:
-		string file_name;
 		string out_name;
 		bool is_set;
 		bool write_it;
@@ -28,11 +27,9 @@ class Histogram
 		int num_of_classes;
 		map <double, int> histogram_map;
 	public:
+
 		Histogram(string out_name, int from, int step, int num_of_classes);
 		Histogram(string out_name);
-
-		void create_file(string file_name);
-		void data_out_write( string data );
 
 		double min_value();
 		double max_value();
@@ -42,7 +39,7 @@ class Histogram
 		double sum_num();
 		double deviation_num();
 
-		void data_out();
+		void data_out(string file_name);
 	
 };
 
